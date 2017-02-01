@@ -33,6 +33,7 @@ public class WordCountTopology {
 
     if (args != null && args.length > 0) {
       conf.setNumWorkers(5);
+      conf.setNumAckers(1);
       StormSubmitter.submitTopologyWithProgressBar(args[0], conf, builder.createTopology());
     }
     else {
