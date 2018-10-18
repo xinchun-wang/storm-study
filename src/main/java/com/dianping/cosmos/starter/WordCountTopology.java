@@ -15,24 +15,12 @@ public class WordCountTopology {
 
   public static void main(String[] args) throws Exception {
 
-    TopologyBuilder builder = new TopologyBuilder();
-
-    builder.setSpout("Spout", new RandomSentenceSpout(), 3).setNumTasks(6);
-    builder.setBolt("SplitBolt", new SplitSentenceBolt(), 4
-            ).shuffleGrouping("Spout").setMaxTaskParallelism(8);
-    
-    builder.setBolt("BiggerCounter", new BigCounterBolt(), 2
-            ).fieldsGrouping("SplitBolt", "bigger", new Fields("word"));
-    builder.setBolt("SmallerCounter", new SmallCounterBolt(), 2
-            ).fieldsGrouping("SplitBolt", "smaller", new Fields("word"));
-
-    builder.setBolt("FinalCounter", new FinalCounterBolt(), 1).
-        noneGrouping("BiggerCounter").noneGrouping("SmallerCounter");
+    TopologyBuilder builder = buildTopology();
 
     Config conf = new Config();
 
     if (args != null && args.length > 0) {
-      conf.setNumWorkers(5);
+      conf.setNumWorkers(4);
       conf.setNumAckers(1);
       StormSubmitter.submitTopologyWithProgressBar(args[0], conf, builder.createTopology());
     }
@@ -46,4 +34,21 @@ public class WordCountTopology {
       cluster.shutdown();
     }
   }
+
+	protected static TopologyBuilder buildTopology() {
+		TopologyBuilder builder = new TopologyBuilder();
+	
+	    builder.setSpout("Spout", new RandomSentenceSpout(), 3).setNumTasks(6);
+	    builder.setBolt("SplitBolt", new SplitSentenceBolt(), 4
+	            ).shuffleGrouping("Spout").setMaxTaskParallelism(8);
+	    
+	    builder.setBolt("BiggerCounter", new BigCounterBolt(), 2
+	            ).fieldsGrouping("SplitBolt", "bigger", new Fields("word"));
+	    builder.setBolt("SmallerCounter", new SmallCounterBolt(), 2
+	            ).fieldsGrouping("SplitBolt", "smaller", new Fields("word"));
+	
+	    builder.setBolt("FinalCounter", new FinalCounterBolt(), 1).
+	        noneGrouping("BiggerCounter").noneGrouping("SmallerCounter");
+		return builder;
+	}
 }
